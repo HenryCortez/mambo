@@ -1,0 +1,211 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+/////////////////////////
+// Enums
+/////////////////////////
+
+enum DocumentType {
+  OFICIO
+  MEMORANDO
+}
+
+enum DocumentCategory {
+  NORMAL
+  CIFRADO
+}
+
+enum DocumentStatus {
+  DRAFT
+  SENT
+  RECEIVED
+  FAILED_TO_SEND
+  NOT_SENT
+}
+
+enum StorageLocation {
+  SERVER
+  LOCAL
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+/////////////////////////
+// Models
+/////////////////////////
+
+model User {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  email        String  @unique
+  passwordHash String? // MASK
+  displayName  String?
+  role         Role    @default(USER)
+  isActive     Boolean @default(true)
+
+  creatorId    String?
+  creator      User?   @relation("UserCreator", fields: [creatorId], references: [id])
+  createdUsers User[]  @relation("UserCreator")
+
+  pdfKeyEncrypted String? // MASK
+
+  documentsCreated  Document[]          @relation("AuthorDocuments")
+  receivedRelations DocumentRecipient[]
+
+  lastLoginAt      DateTime?
+  failedLoginCount Int       @default(0)
+
+  auditLogs  AuditLog[]
+  signatures SignatureLog[]
+}
+
+model Document {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  title String
+  body  String?
+
+  authorId String
+  author   User   @relation("AuthorDocuments", fields: [authorId], references: [id])
+
+  type     DocumentType
+  category DocumentCategory
+  status   DocumentStatus   @default(DRAFT)
+  storage  StorageLocation  @default(SERVER)
+
+  filePath String?
+  fileSize Int?
+
+  encryptionFrontAlg String?
+  encryptionBackAlg  String?
+  encryptionIv       String?
+  encryptedFileKey   String? // MASK
+
+  isSigned    Boolean   @default(false)
+  signatureQR String?
+  signatureAt DateTime?
+
+  recipients  DocumentRecipient[]
+  attachments Attachment[]
+
+  sendAttempts      Int       @default(0)
+  lastSendAttemptAt DateTime?
+
+  parentDocumentId String?
+  parentDocument   Document?  @relation("DocumentReplies", fields: [parentDocumentId], references: [id])
+  replies          Document[] @relation("DocumentReplies")
+
+  instance String?
+
+  deleted Boolean @default(false)
+
+  unsentQueue   UnsentQueue?
+  signatureLogs SignatureLog[]
+  auditLogs     AuditLog[]
+}
+
+model DocumentRecipient {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+
+  recipientId String
+  recipient   User   @relation(fields: [recipientId], references: [id])
+
+  canRead  Boolean @default(true)
+  canWrite Boolean @default(false)
+
+  status     DocumentStatus?
+  receivedAt DateTime?
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  uploadedAt DateTime @default(now())
+
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+
+  filename String
+  filePath String?
+  fileSize Int?
+
+  encrypted     Boolean @default(false)
+  encryptionAlg String?
+  encryptionIv  String?
+  encryptedKey  String? // MASK
+}
+
+model SignatureLog {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  documentId String
+  document   Document @relation(fields: [documentId], references: [id])
+
+  signerId String
+  signer   User   @relation(fields: [signerId], references: [id])
+
+  qrContent    String? // MASK
+  verifierInfo String?
+}
+
+model UnsentQueue {
+  id String @id @default(uuid())
+
+  documentId String   @unique
+  document   Document @relation(fields: [documentId], references: [id])
+
+  reason    String?
+  attempts  Int       @default(0)
+  nextTryAt DateTime?
+
+  createdAt     DateTime @default(now())
+  lastUpdatedAt DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  actorId String?
+  actor   User?   @relation(fields: [actorId], references: [id])
+
+  action       String
+  resourceId   String?
+  resourceType String?
+  details      String?
+  ipAddress    String?
+
+  document Document? @relation(fields: [resourceId], references: [id])
+}
+
+model AppSettings {
+  id               Int      @id @default(1)
+  allowedFrontAlgs String
+  allowedBackAlgs  String
+  defaultInstances String
+  updatedAt        DateTime @updatedAt
+}
