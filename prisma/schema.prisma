@@ -56,12 +56,19 @@ model User {
   updatedAt DateTime @updatedAt
 
   email        String  @unique
-  passwordHash String? // MASK
   displayName  String?
   role         Role    @default(USER)
   isActive     Boolean @default(true)
-
   creatorId    String?
+  password     String?
+  microsoftId      String?  @unique
+  firstName        String?
+  lastName         String?
+  accessToken      String?  @db.Text
+  refreshToken     String?  @db.Text
+  tokenExpires     DateTime?
+  lastLogin        DateTime?
+
   creator      User?   @relation("UserCreator", fields: [creatorId], references: [id])
   createdUsers User[]  @relation("UserCreator")
 
