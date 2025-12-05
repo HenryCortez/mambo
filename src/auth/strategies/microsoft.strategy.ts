@@ -1,6 +1,6 @@
 // src/auth/strategies/microsoft.strategy.ts
 import 'dotenv/config';
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-microsoft';
 import { AuthService } from '../auth.service';
@@ -36,6 +36,6 @@ export class MicrosoftStrategy extends PassportStrategy(Strategy, 'microsoft') {
       accessToken,
       refreshToken,
     };
-    return this.authService.validateOrCreateUser(user);
+    return await this.authService.handleMicrosoftLogin(user);
   }
 }

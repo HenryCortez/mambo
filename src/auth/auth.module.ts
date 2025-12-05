@@ -2,16 +2,15 @@
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import 'dotenv/config';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { MicrosoftStrategy } from './strategies/microsoft.strategy';
-import { CommonModule } from '../common/common.module';
+
 
 @Module({
   imports: [
-    CommonModule,
     PassportModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET,
@@ -22,4 +21,5 @@ import { CommonModule } from '../common/common.module';
   controllers: [AuthController],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule {
+}
