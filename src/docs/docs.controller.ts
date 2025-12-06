@@ -1,14 +1,7 @@
-import {
-  Controller,
-  Post,
-  Get,
-  Body,
-  Param,
-  ParseIntPipe
-} from '@nestjs/common'
+import { Controller, Post, Get, Body, Param, ParseIntPipe } from '@nestjs/common'
 import { ApiTags, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger'
 import { EncryptionService } from './encryption/encryption.service'
-import { EncryptDocDto } from './dto/encrypt-doc.dto'
+import { EncryptDocDto } from './encryption/dto/encrypt-doc.dto'
 
 @ApiTags('Docs')
 @Controller('docs')

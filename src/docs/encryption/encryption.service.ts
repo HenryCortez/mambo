@@ -27,9 +27,7 @@ export class EncryptionService {
     })
 
     if (existingEncryption) {
-      throw new BadRequestException(
-        `El documento con ID ${id_doc} ya está encriptado`
-      )
+      throw new BadRequestException(`El documento con ID ${id_doc} ya está encriptado`)
     }
 
     if (!content || content.trim() === '') {
@@ -69,9 +67,7 @@ export class EncryptionService {
     })
 
     if (!encryption) {
-      throw new NotFoundException(
-        `No se encontró encriptación para el documento con ID ${id_doc}`
-      )
+      throw new NotFoundException(`No se encontró encriptación para el documento con ID ${id_doc}`)
     }
 
     // Desencriptar y retornar el contenido original

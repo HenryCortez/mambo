@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
+import { Injectable } from '@nestjs/common'
+import { MailerService } from '@nestjs-modules/mailer'
 
 @Injectable()
 export class MailService {
@@ -9,12 +9,12 @@ export class MailService {
     await this.mailer.sendMail({
       to: email,
       subject: 'Bienvenido',
-      html: `<p>Hola ${name}, tu cuenta ha sido creada correctamente.</p>`,
-    });
+      html: `<p>Hola ${name}, tu cuenta ha sido creada correctamente.</p>`
+    })
   }
 
   async sendPasswordReset(email: string, token: string) {
-    const url = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const url = `${process.env.FRONTEND_URL}/reset-password?token=${token}`
 
     await this.mailer.sendMail({
       to: email,
@@ -22,8 +22,8 @@ export class MailService {
       html: `
         <p>Para restablecer tu contraseña usa el siguiente enlace:</p>
         <a href="${url}">${url}</a>
-      `,
-    });
+      `
+    })
   }
 
   async sendOtpBackupCodes(email: string, codes: string[]) {
@@ -33,7 +33,7 @@ export class MailService {
       html: `
         <p>Guarda estos códigos en un lugar seguro:</p>
         <pre>${codes.join('\n')}</pre>
-      `,
-    });
+      `
+    })
   }
 }
