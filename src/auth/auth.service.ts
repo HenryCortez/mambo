@@ -70,6 +70,7 @@ export class AuthService {
         password: passwordHash,
         mfaSecret: secret,
         mfaEnabled: true,
+        parent_id: dto.parent_id || null,
       },
     });
 
