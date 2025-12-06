@@ -8,159 +8,105 @@ datasource db {
   provider = "postgresql"
 }
 
-model User {
-  id                String              @id @default(cuid())
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  email             String              @unique
-  displayName       String?
-  role              Role                @default(USER)
-  isActive          Boolean             @default(true)
-  pdfKeyEncrypted   String?
-  lastLoginAt       DateTime?
-  failedLoginCount  Int                 @default(0)
-  accessToken       String?
-  firstName         String?
-  lastLogin         DateTime?
-  lastName          String?
-  microsoftId       String?             @unique
-  refreshToken      String?
-  tokenExpires      DateTime?
-  auditLogs         AuditLog[]
-  documentsCreated  Document[]          @relation("AuthorDocuments")
-  receivedRelations DocumentRecipient[]
-  signatures        SignatureLog[]
+// =====================================
+// ENUMS
+// =====================================
+
+enum TYPES {
+  OFFICE
+  MEMORANDUM
 }
 
-model Document {
-  id                 String              @id @default(uuid())
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  title              String
-  body               String?
-  authorId           String
-  type               DocumentType
-  category           DocumentCategory
-  status             DocumentStatus      @default(DRAFT)
-  storage            StorageLocation     @default(SERVER)
-  filePath           String?
-  fileSize           Int?
-  encryptionFrontAlg String?
-  encryptionBackAlg  String?
-  encryptionIv       String?
-  encryptedFileKey   String?
-  isSigned           Boolean             @default(false)
-  signatureQR        String?
-  signatureAt        DateTime?
-  sendAttempts       Int                 @default(0)
-  lastSendAttemptAt  DateTime?
-  parentDocumentId   String?
-  instance           String?
-  deleted            Boolean             @default(false)
-  attachments        Attachment[]
-  auditLogs          AuditLog[]
-  author             User                @relation("AuthorDocuments", fields: [authorId], references: [id])
-  parentDocument     Document?           @relation("DocumentReplies", fields: [parentDocumentId], references: [id])
-  replies            Document[]          @relation("DocumentReplies")
-  recipients         DocumentRecipient[]
-  signatureLogs      SignatureLog[]
-  unsentQueue        UnsentQueue?
-}
-
-model DocumentRecipient {
-  id          String          @id @default(uuid())
-  createdAt   DateTime        @default(now())
-  documentId  String
-  recipientId String
-  canRead     Boolean         @default(true)
-  canWrite    Boolean         @default(false)
-  status      DocumentStatus?
-  receivedAt  DateTime?
-  document    Document        @relation(fields: [documentId], references: [id])
-  recipient   User            @relation(fields: [recipientId], references: [id])
-}
-
-model Attachment {
-  id            String   @id @default(uuid())
-  uploadedAt    DateTime @default(now())
-  documentId    String
-  filename      String
-  filePath      String?
-  fileSize      Int?
-  encrypted     Boolean  @default(false)
-  encryptionAlg String?
-  encryptionIv  String?
-  encryptedKey  String?
-  document      Document @relation(fields: [documentId], references: [id])
-}
-
-model SignatureLog {
-  id           String   @id @default(uuid())
-  createdAt    DateTime @default(now())
-  documentId   String
-  signerId     String
-  qrContent    String?
-  verifierInfo String?
-  document     Document @relation(fields: [documentId], references: [id])
-  signer       User     @relation(fields: [signerId], references: [id])
-}
-
-model UnsentQueue {
-  id            String    @id @default(uuid())
-  documentId    String    @unique
-  reason        String?
-  attempts      Int       @default(0)
-  nextTryAt     DateTime?
-  createdAt     DateTime  @default(now())
-  lastUpdatedAt DateTime  @updatedAt
-  document      Document  @relation(fields: [documentId], references: [id])
-}
-
-model AuditLog {
-  id           String    @id @default(uuid())
-  createdAt    DateTime  @default(now())
-  actorId      String?
-  action       String
-  resourceId   String?
-  resourceType String?
-  details      String?
-  ipAddress    String?
-  actor        User?     @relation(fields: [actorId], references: [id])
-  document     Document? @relation(fields: [resourceId], references: [id])
-}
-
-model AppSettings {
-  id               Int      @id @default(1)
-  allowedFrontAlgs String
-  allowedBackAlgs  String
-  defaultInstances String
-  updatedAt        DateTime @updatedAt
-}
-
-enum DocumentType {
-  OFICIO
-  MEMORANDO
-}
-
-enum DocumentCategory {
+enum CATEGORY {
   NORMAL
-  CIFRADO
+  ENCRYPTED
 }
 
-enum DocumentStatus {
+enum STATUS {
   DRAFT
-  SENT
-  RECEIVED
-  FAILED_TO_SEND
   NOT_SENT
+  SENT
 }
 
-enum StorageLocation {
-  SERVER
-  LOCAL
+// =====================================
+// MODELS
+// =====================================
+
+model users {
+  id        Int       @id @default(autoincrement())
+  name      String?
+  lastname  String?
+  email     String    @unique
+  password  String?
+  parent_id Int?
+
+  // self-relation (parent-child)
+  parent    users?    @relation("UserParent", fields: [parent_id], references: [id])
+  children  users[]   @relation("UserParent")
+
+  // relations
+  creations creations[]
+  sends_emitter sends[] @relation("SendEmitter")
+  sends_receiver sends[] @relation("SendReceiver")
 }
 
-enum Role {
-  ADMIN
-  USER
+model docs {
+  id        Int          @id @default(autoincrement())
+  name      String?
+  url       String?
+  password  String?
+  type      TYPES?
+  category  CATEGORY?
+
+  // relations
+  creations   creations[]
+  sends       sends[]
+  attachments attachments[]
+  encryptions encryptions[]
+}
+
+model encryptions {
+  id          Int     @id @default(autoincrement())
+  id_doc      Int
+  code        String
+  length      Int
+  frequencies Json
+
+  doc docs @relation(fields: [id_doc], references: [id])
+}
+
+model sends {
+  id          Int    @id @default(autoincrement())
+  id_emisor   Int
+  id_receptor Int
+  id_doc      Int
+  reading     Boolean?
+  writing     Boolean?
+
+  // relations
+  emisor   users @relation("SendEmitter", fields: [id_emisor], references: [id])
+  receptor users @relation("SendReceiver", fields: [id_receptor], references: [id])
+  doc      docs  @relation(fields: [id_doc], references: [id])
+
+  attachments attachments[]
+}
+
+model attachments {
+  id      Int  @id @default(autoincrement())
+  id_send Int
+  id_doc  Int
+
+  send sends @relation(fields: [id_send], references: [id])
+  doc  docs  @relation(fields: [id_doc], references: [id])
+}
+
+model creations {
+  id       Int     @id @default(autoincrement())
+  id_user  Int
+  id_doc   Int
+  status   STATUS?
+  details  String?
+
+  user users @relation(fields: [id_user], references: [id])
+  doc  docs  @relation(fields: [id_doc], references: [id])
 }
