@@ -39,7 +39,8 @@ model users {
   email     String    @unique
   password  String?
   parent_id Int?
-
+  mfaSecret   String?   // <--- agregar
+  mfaEnabled  Boolean   @default(false)
   // self-relation (parent-child)
   parent    users?    @relation("UserParent", fields: [parent_id], references: [id])
   children  users[]   @relation("UserParent")
