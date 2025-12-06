@@ -5,6 +5,7 @@ import { PassportModule } from '@nestjs/passport'
 import 'dotenv/config'
 import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
+import { MailModule } from './mail/mail.module';
 
 @Module({
   imports: [
@@ -12,7 +13,8 @@ import { AuthController } from './auth.controller'
     JwtModule.register({
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: '1d' }
-    })
+    }),
+    MailModule
   ],
   providers: [AuthService],
   controllers: [AuthController],
