@@ -5,7 +5,12 @@ import { AuthModule } from './auth/auth.module'
 import { DocsModule } from './docs/docs.module'
 
 @Module({
-  imports: [UsersModule, CommonModule, AuthModule, DocsModule],
+  imports: [
+    UsersModule,
+    CommonModule,
+    AuthModule,
+    DocsModule
+  ],
   controllers: [],
   providers: []
 })

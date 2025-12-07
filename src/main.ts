@@ -38,9 +38,10 @@ async function bootstrap() {
       {
         type: 'http',
         scheme: 'bearer',
-        bearerFormat: 'JWT'
+        bearerFormat: 'JWT',
+        in: 'header'
       },
-      'JWT-auth'
+      'jwt-auth' // nombre del esquema
     )
     .build()
 
