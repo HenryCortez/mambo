@@ -13,7 +13,8 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000', // Frontend
       'http://localhost:3001', // Swagger UI
-      'http://localhost' // Para pruebas locales
+      'http://localhost', // Para pruebas locales
+      'http://localhost:4200'
     ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
