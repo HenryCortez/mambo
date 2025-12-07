@@ -15,7 +15,7 @@ import { MailerModule } from '@nestjs-modules/mailer'
         }
       },
       defaults: {
-        from: '"Sistema" <no-reply@sistema.com>'
+        from: '"Sistema" <henrystevencortez4566@gmail.com>'
       }
     })
   ],
