@@ -77,8 +77,8 @@ export class AuthService {
     // Generate QR
     const qr = await this.totpService.generateQrCode(dto.email, secret);
 
-    // Send welcome email
-    await this.mailService.sendWelcome(dto.email, dto.name);
+    // Send welcome email with QR code
+    await this.mailService.sendWelcome(dto.email, dto.name, qr);
 
     return {
       message: 'Registered successfully. Configure your MFA.',
