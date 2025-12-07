@@ -33,31 +33,31 @@ enum STATUS {
 // =====================================
 
 model users {
-  id        Int       @id @default(autoincrement())
-  name      String?
-  lastname  String?
-  email     String    @unique
-  password  String?
-  parent_id Int?
-  mfaSecret   String?   // <--- agregar
-  mfaEnabled  Boolean   @default(false)
+  id         Int     @id @default(autoincrement())
+  name       String?
+  lastname   String?
+  email      String  @unique
+  password   String?
+  parent_id  Int?
+  mfaSecret  String? // <--- agregar
+  mfaEnabled Boolean @default(false)
   // self-relation (parent-child)
-  parent    users?    @relation("UserParent", fields: [parent_id], references: [id])
-  children  users[]   @relation("UserParent")
+  parent     users?  @relation("UserParent", fields: [parent_id], references: [id])
+  children   users[] @relation("UserParent")
 
   // relations
-  creations creations[]
-  sends_emitter sends[] @relation("SendEmitter")
-  sends_receiver sends[] @relation("SendReceiver")
+  creations      creations[]
+  sends_emitter  sends[]     @relation("SendEmitter")
+  sends_receiver sends[]     @relation("SendReceiver")
 }
 
 model docs {
-  id        Int          @id @default(autoincrement())
-  name      String?
-  url       String?
-  password  String?
-  type      TYPES?
-  category  CATEGORY?
+  id       Int       @id @default(autoincrement())
+  name     String?
+  url      String?
+  password String?
+  type     TYPES?
+  category CATEGORY?
 
   // relations
   creations   creations[]
@@ -67,17 +67,20 @@ model docs {
 }
 
 model encryptions {
-  id          Int     @id @default(autoincrement())
-  id_doc      Int
-  code        String
-  length      Int
-  frequencies Json
+  id                Int    @id @default(autoincrement())
+  id_doc            Int
+  code_front        String
+  length_front      Int
+  frequencies_front Json
+  code_back         String
+  length_back       Int
+  frequencies_back  Json
 
   doc docs @relation(fields: [id_doc], references: [id])
 }
 
 model sends {
-  id          Int    @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   id_emisor   Int
   id_receptor Int
   id_doc      Int
@@ -93,7 +96,7 @@ model sends {
 }
 
 model attachments {
-  id      Int  @id @default(autoincrement())
+  id      Int @id @default(autoincrement())
   id_send Int
   id_doc  Int
 
@@ -102,11 +105,11 @@ model attachments {
 }
 
 model creations {
-  id       Int     @id @default(autoincrement())
-  id_user  Int
-  id_doc   Int
-  status   STATUS?
-  details  String?
+  id      Int     @id @default(autoincrement())
+  id_user Int
+  id_doc  Int
+  status  STATUS?
+  details String?
 
   user users @relation(fields: [id_user], references: [id])
   doc  docs  @relation(fields: [id_doc], references: [id])
