@@ -41,5 +41,5 @@ export class RegisterUserDto {
     description: 'ID of the parent user',
     example: 1,
   })
-  parent_id: number;
+  parent_id?: number;
 }
