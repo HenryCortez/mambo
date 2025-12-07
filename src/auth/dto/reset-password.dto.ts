@@ -19,4 +19,12 @@ export class ResetPasswordDto {
   @IsNotEmpty({ message: 'La nueva contraseña es obligatoria' })
   @MinLength(8, { message: 'La contraseña debe tener al menos 8 caracteres' })
   newPassword: string
+
+  @ApiProperty({
+    description: 'Password confirmation (must match new password)',
+    example: 'NewSecurePass123!'
+  })
+  @IsString()
+  @IsNotEmpty({ message: 'La confirmación de contraseña es obligatoria' })
+  confirmPassword: string
 }

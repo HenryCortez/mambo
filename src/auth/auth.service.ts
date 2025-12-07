@@ -9,6 +9,7 @@ import { ResetPasswordDto } from './dto/reset-password.dto'
 import { MailService } from './mail/mail.service'
 import { LoginUserDto } from './dto/login-user.dto'
 import { ForgotPasswordDto } from './dto/forgot-password.dto'
+import { AuthCodeDto } from './dto/auth-code.dto'
 
 @Injectable()
 export class AuthService {
@@ -67,8 +68,8 @@ export class AuthService {
     // Generate QR
     const qr = await this.totpService.generateQrCode(dto.email, secret)
 
-    // Send welcome email
-    await this.mailService.sendWelcome(dto.email, dto.name)
+    // Send welcome email with QR code
+    await this.mailService.sendWelcome(dto.email,dto.password, dto.name, qr);
 
     return {
       message: 'Registered successfully. Configure your MFA.',
@@ -95,18 +96,26 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials')
     }
 
-    // MFA required
     if (!user.mfaEnabled || !user.mfaSecret) {
       throw new UnauthorizedException('MFA is required')
     }
 
-    const ok = this.totpService.verify(dto.totp, user.mfaSecret)
+    return {
+      id: user.id,
+      email: user.email,
+      mfaSecret: user.mfaSecret
+    }
+  }
+
+  async authCode(dto: AuthCodeDto){
+    // MFA required
+    const ok = this.totpService.verify(dto.totp, dto.mfaSecret)
     if (!ok) {
       throw new UnauthorizedException('Invalid MFA code')
     }
 
     // Generate JWT
-    const payload = { sub: user.id, email: user.email }
+    const payload = { sub: dto.id, email: dto.email }
     const token = await this.jwtService.signAsync(payload)
 
     return {
@@ -145,14 +154,12 @@ export class AuthService {
   ========================================================== */
   async resetPassword(dto: ResetPasswordDto) {
     try {
-      const decoded: any = await this.jwtService.verifyAsync(dto.token)
-
-      if (decoded.purpose !== 'password-reset') {
-        throw new BadRequestException('Invalid token')
-      }
+      const decoded = await this.verifyResetToken(dto.token)
 
       const userId = decoded.sub
-
+      if (dto.newPassword !== dto.confirmPassword) {
+        throw new BadRequestException('Passwords do not match')
+      }
       const hash = await bcrypt.hash(dto.newPassword, 12)
 
       await this.prisma.users.update({
@@ -165,4 +172,16 @@ export class AuthService {
       throw new BadRequestException('Invalid or expired token')
     }
   }
+
+  async verifyResetToken(token: string) {
+  try {
+    const decoded = await this.jwtService.verifyAsync(token);
+    if (decoded.purpose !== 'password-reset') {
+      throw new BadRequestException('Invalid token');
+    }
+    return decoded;
+  } catch (error) {
+    throw new BadRequestException('Invalid or expired token');
+  }
+}
 }

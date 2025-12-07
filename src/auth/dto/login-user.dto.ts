@@ -16,12 +16,4 @@ export class LoginUserDto {
   @IsString()
   @IsNotEmpty()
   password: string
-
-  @ApiProperty({
-    description: '2FA authentication code',
-    example: '123456'
-  })
-  @IsString()
-  @IsNotEmpty()
-  totp: string
 }
