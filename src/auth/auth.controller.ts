@@ -5,6 +5,7 @@ import { RegisterUserDto } from './dto/register-user.dto'
 import { LoginUserDto } from './dto/login-user.dto'
 import { ForgotPasswordDto } from './dto/forgot-password.dto'
 import { ResetPasswordDto } from './dto/reset-password.dto'
+import { AuthCodeDto } from './dto/auth-code.dto'
 
 @ApiTags('auth')
 @Controller('auth')
@@ -28,6 +29,15 @@ export class AuthController {
   @ApiBody({ type: LoginUserDto })
   login(@Body() dto: LoginUserDto) {
     return this.service.login(dto)
+  }
+
+  @Post('login-code')
+  @ApiOperation({ summary: 'mf2' })
+  @ApiResponse({ status: HttpStatus.OK, description: 'User successfully logged in' })
+  @ApiResponse({ status: HttpStatus.UNAUTHORIZED, description: 'Invalid credentials' })
+  @ApiBody({ type: AuthCodeDto })
+  authCode(@Body() dto: AuthCodeDto) {
+    return this.service.authCode(dto)
   }
 
   @Post('request-reset')

@@ -20,7 +20,6 @@ export class AuthCodeDto {
   @ApiProperty({
     description: 'MFA secret for two-factor authentication',
     example: 'JBSWY3DPEHPK3PXP',
-    readOnly: true
   })
   @IsString()
   mfaSecret: string
