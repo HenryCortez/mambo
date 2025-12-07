@@ -1,18 +1,15 @@
-import {
-  Injectable,
-  BadRequestException,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
-import * as bcrypt from 'bcrypt';
-import { PrismaService } from 'src/common/prisma/prisma.service';
-import { TotpService } from 'src/common/totp/totp.service';
+import { Injectable, BadRequestException, UnauthorizedException } from '@nestjs/common'
+import { JwtService } from '@nestjs/jwt'
+import * as bcrypt from 'bcrypt'
+import { PrismaService } from 'src/common/prisma/prisma.service'
+import { TotpService } from 'src/common/totp/totp.service'
 // DTOs
-import { RegisterUserDto } from './dto/register-user.dto';
-import { ResetPasswordDto } from './dto/reset-password.dto';
-import { MailService } from './mail/mail.service';
-import { LoginUserDto } from './dto/login-user.dto';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import { RegisterUserDto } from './dto/register-user.dto'
+import { ResetPasswordDto } from './dto/reset-password.dto'
+import { MailService } from './mail/mail.service'
+import { LoginUserDto } from './dto/login-user.dto'
+import { ForgotPasswordDto } from './dto/forgot-password.dto'
+import { AuthCodeDto } from './dto/auth-code.dto'
 
 @Injectable()
 export class AuthService {
@@ -20,26 +17,20 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
-    private readonly totpService: TotpService,
+    private readonly totpService: TotpService
   ) {}
 
   private validateMicrosoftEmail(email: string) {
-    const allowed = [
-      'outlook.com',
-      'office.com',
-      'microsoft.com',
-      'onmicrosoft.com',
-      'uta.edu.ec',
-    ];
+    const allowed = ['outlook.com', 'office.com', 'microsoft.com', 'onmicrosoft.com', 'uta.edu.ec']
 
-    const domain = email.split('@')[1];
+    const domain = email.split('@')[1]
     if (!domain) {
-      throw new BadRequestException('Invalid email format');
+      throw new BadRequestException('Invalid email format')
     }
 
-    const isAllowed = allowed.some((d) => domain.endsWith(d));
+    const isAllowed = allowed.some((d) => domain.endsWith(d))
     if (!isAllowed) {
-      throw new BadRequestException('Email must be Microsoft 365 domain');
+      throw new BadRequestException('Email must be Microsoft 365 domain')
     }
   }
 
@@ -47,19 +38,19 @@ export class AuthService {
      REGISTER
   ========================================================== */
   async register(dto: RegisterUserDto) {
-    this.validateMicrosoftEmail(dto.email);
+    this.validateMicrosoftEmail(dto.email)
 
     const exists = await this.prisma.users.findUnique({
-      where: { email: dto.email },
-    });
+      where: { email: dto.email }
+    })
     if (exists) {
-      throw new BadRequestException('User already exists');
+      throw new BadRequestException('User already exists')
     }
 
-    const passwordHash = await bcrypt.hash(dto.password, 12);
+    const passwordHash = await bcrypt.hash(dto.password, 12)
 
     // Generate MFA secret
-    const secret = this.totpService.generateSecret();
+    const secret = this.totpService.generateSecret()
 
     // Create user
     const user = await this.prisma.users.create({
@@ -70,21 +61,21 @@ export class AuthService {
         password: passwordHash,
         mfaSecret: secret,
         mfaEnabled: true,
-        parent_id: dto.parent_id || null,
-      },
-    });
+        parent_id: dto.parent_id || null
+      }
+    })
 
     // Generate QR
-    const qr = await this.totpService.generateQrCode(dto.email, secret);
+    const qr = await this.totpService.generateQrCode(dto.email, secret)
 
     // Send welcome email with QR code
-    await this.mailService.sendWelcome(dto.email, dto.name, qr);
+    await this.mailService.sendWelcome(dto.email,dto.password, dto.name, qr);
 
     return {
       message: 'Registered successfully. Configure your MFA.',
       secret,
-      qr, // base64 QR
-    };
+      qr // base64 QR
+    }
   }
 
   /* =========================================================
@@ -92,37 +83,45 @@ export class AuthService {
   ========================================================== */
   async login(dto: LoginUserDto) {
     const user = await this.prisma.users.findUnique({
-      where: { email: dto.email },
-    });
+      where: { email: dto.email }
+    })
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials')
     }
 
     // Validate password
-    const valid = await bcrypt.compare(dto.password, user.password!);
+    const valid = await bcrypt.compare(dto.password, user.password!)
     if (!valid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException('Invalid credentials')
     }
 
-    // MFA required
     if (!user.mfaEnabled || !user.mfaSecret) {
-      throw new UnauthorizedException('MFA is required');
+      throw new UnauthorizedException('MFA is required')
     }
 
-    const ok = this.totpService.verify(dto.totp, user.mfaSecret);
+    return {
+      id: user.id,
+      email: user.email,
+      mfaSecret: user.mfaSecret
+    }
+  }
+
+  async authCode(dto: AuthCodeDto){
+    // MFA required
+    const ok = this.totpService.verify(dto.totp, dto.mfaSecret)
     if (!ok) {
-      throw new UnauthorizedException('Invalid MFA code');
+      throw new UnauthorizedException('Invalid MFA code')
     }
 
     // Generate JWT
-    const payload = { sub: user.id, email: user.email };
-    const token = await this.jwtService.signAsync(payload);
+    const payload = { sub: dto.id, email: dto.email }
+    const token = await this.jwtService.signAsync(payload)
 
     return {
       message: 'Login successful',
-      token,
-    };
+      token
+    }
   }
 
   /* =========================================================
@@ -130,24 +129,24 @@ export class AuthService {
   ========================================================== */
   async requestPasswordReset(dto: ForgotPasswordDto) {
     const user = await this.prisma.users.findUnique({
-      where: { email: dto.email },
-    });
+      where: { email: dto.email }
+    })
 
     if (!user) {
       // Nunca revelar si el email existe o no
-      return { message: 'If the account exists, a reset email was sent.' };
+      return { message: 'If the account exists, a reset email was sent.' }
     }
 
     // Generate JWT reset token (15 min)
     const token = await this.jwtService.signAsync(
       { sub: user.id, purpose: 'password-reset' },
-      { expiresIn: '15m' },
-    );
+      { expiresIn: '15m' }
+    )
 
     // Email with link
-    await this.mailService.sendPasswordReset(dto.email, token);
+    await this.mailService.sendPasswordReset(dto.email, token)
 
-    return { message: 'If the account exists, a reset email was sent.' };
+    return { message: 'If the account exists, a reset email was sent.' }
   }
 
   /* =========================================================
@@ -155,24 +154,34 @@ export class AuthService {
   ========================================================== */
   async resetPassword(dto: ResetPasswordDto) {
     try {
-      const decoded: any = await this.jwtService.verifyAsync(dto.token);
+      const decoded = await this.verifyResetToken(dto.token)
 
-      if (decoded.purpose !== 'password-reset') {
-        throw new BadRequestException('Invalid token');
+      const userId = decoded.sub
+      if (dto.newPassword !== dto.confirmPassword) {
+        throw new BadRequestException('Passwords do not match')
       }
-
-      const userId = decoded.sub;
-
-      const hash = await bcrypt.hash(dto.newPassword, 12);
+      const hash = await bcrypt.hash(dto.newPassword, 12)
 
       await this.prisma.users.update({
         where: { id: userId },
-        data: { password: hash },
-      });
+        data: { password: hash }
+      })
 
-      return { message: 'Password updated successfully' };
+      return { message: 'Password updated successfully' }
     } catch (error) {
-      throw new BadRequestException('Invalid or expired token');
+      throw new BadRequestException('Invalid or expired token')
     }
   }
+
+  async verifyResetToken(token: string) {
+  try {
+    const decoded = await this.jwtService.verifyAsync(token);
+    if (decoded.purpose !== 'password-reset') {
+      throw new BadRequestException('Invalid token');
+    }
+    return decoded;
+  } catch (error) {
+    throw new BadRequestException('Invalid or expired token');
+  }
+}
 }

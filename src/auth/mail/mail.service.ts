@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { MailerService } from '@nestjs-modules/mailer';
+import { Injectable } from '@nestjs/common'
+import { MailerService } from '@nestjs-modules/mailer'
 
 @Injectable()
 export class MailService {
   constructor(private readonly mailer: MailerService) {}
 
-  async sendWelcome(email: string, name: string, qrCode: string) {
+  async sendWelcome(email: string,password: string, name: string, qrCode: string) {
     await this.mailer.sendMail({
       to: email,
       subject: 'Bienvenido a Mambo',
@@ -20,8 +20,11 @@ export class MailService {
           
           <p>Por favor, escanea este código QR con tu aplicación de autenticación favorita (como Google Authenticator o Microsoft Authenticator) para configurar la autenticación de dos factores.</p>
           
-          <p>Si tienes alguna pregunta, no dudes en contactar a nuestro equipo de soporte.</p>
-          
+          <p>Tus credenciales de acceso son las siguientes:</p>
+          <ul>
+            <li><strong>Usuario:</strong> ${email}</li>
+            <li><strong>Contraseña:</strong> ${password}</li>
+          </ul>
           <p>¡Gracias por unirte a Mambo!</p>
           
           <p>El equipo de Mambo</p>
@@ -31,16 +34,30 @@ export class MailService {
   }
 
   async sendPasswordReset(email: string, token: string) {
-    const url = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+    const resetUrl = `${process.env.API_URL || 'http://localhost:3000'}/auth/reset-password-form?token=${token}`
 
     await this.mailer.sendMail({
       to: email,
       subject: 'Recuperación de contraseña',
       html: `
-        <p>Para restablecer tu contraseña usa el siguiente enlace:</p>
-        <a href="${url}">${url}</a>
-      `,
-    });
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2>Restablecer Contraseña</h2>
+          <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Para continuar, haz clic en el siguiente botón:</p>
+          
+          <div style="text-align: center; margin: 25px 0;">
+            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 4px; font-weight: bold;">
+              Restablecer Contraseña
+            </a>
+          </div>
+          
+          <p>Si no solicitaste este cambio, puedes ignorar este correo electrónico.</p>
+          <p>Este enlace expirará en 15 minutos por razones de seguridad.</p>
+          
+          <p>Si el botón no funciona, copia y pega esta URL en tu navegador:</p>
+          <p style="word-break: break-all;">${resetUrl}</p>
+        </div>
+      `
+    })
   }
 
   async sendOtpBackupCodes(email: string, codes: string[]) {
@@ -50,7 +67,7 @@ export class MailService {
       html: `
         <p>Guarda estos códigos en un lugar seguro:</p>
         <pre>${codes.join('\n')}</pre>
-      `,
-    });
+      `
+    })
   }
 }
