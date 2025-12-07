@@ -1,15 +1,25 @@
 import { Injectable } from '@nestjs/common'
-import { MailerService } from '@nestjs-modules/mailer'
+import * as Brevo from '@getbrevo/brevo'
 
 @Injectable()
 export class MailService {
-  constructor(private readonly mailer: MailerService) {}
+  private apiInstance: Brevo.TransactionalEmailsApi
+  private sender
+  constructor() {
+    this.apiInstance = new Brevo.TransactionalEmailsApi()
+    this.apiInstance.setApiKey(
+      Brevo.TransactionalEmailsApiApiKeys.apiKey,
+      process.env.BREVO_API_KEY!
+    )
+    this.sender = { name: 'Sistema', email: 'henrystevencortez4566@gmail.com' }
+  }
 
-  async sendWelcome(email: string,password: string, name: string, qrCode: string) {
-    await this.mailer.sendMail({
-      to: email,
+  async sendWelcome(email: string, password: string, name: string, qrCode: string) {
+    await this.apiInstance.sendTransacEmail({
+      sender: this.sender,
+      to: [{ email }],
       subject: 'Bienvenido a Mambo',
-      html: `
+      htmlContent: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>¡Bienvenido a Mambo, ${name}!</h2>
           <p>Tu cuenta ha sido creada exitosamente. A continuación encontrarás tu código QR para configurar la autenticación de dos factores:</p>
@@ -29,17 +39,18 @@ export class MailService {
           
           <p>El equipo de Mambo</p>
         </div>
-      `,
-    });
+      `
+    })
   }
 
   async sendPasswordReset(email: string, token: string) {
     const resetUrl = `${process.env.API_URL || 'http://localhost:3000'}/auth/reset-password-form?token=${token}`
 
-    await this.mailer.sendMail({
-      to: email,
+    await this.apiInstance.sendTransacEmail({
+      sender: this.sender,
+      to: [{ email }],
       subject: 'Recuperación de contraseña',
-      html: `
+      htmlContent: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
           <h2>Restablecer Contraseña</h2>
           <p>Hemos recibido una solicitud para restablecer la contraseña de tu cuenta. Para continuar, haz clic en el siguiente botón:</p>
@@ -61,10 +72,11 @@ export class MailService {
   }
 
   async sendOtpBackupCodes(email: string, codes: string[]) {
-    await this.mailer.sendMail({
-      to: email,
+    await this.apiInstance.sendTransacEmail({
+      sender: this.sender,
+      to: [{ email }],
       subject: 'Códigos de respaldo 2FA',
-      html: `
+      htmlContent: `
         <p>Guarda estos códigos en un lugar seguro:</p>
         <pre>${codes.join('\n')}</pre>
       `

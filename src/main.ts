@@ -10,11 +10,7 @@ async function bootstrap() {
 
   // Configuración CORS
   app.enableCors({
-    origin: [
-      'http://localhost:3000', // Frontend
-      'http://localhost:3001', // Swagger UI
-      'http://localhost' // Para pruebas locales
-    ],
+    origin: '*', // Permite todas las origenes
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
     allowedHeaders: 'Content-Type, Authorization, Accept, X-Requested-With'
@@ -42,9 +38,10 @@ async function bootstrap() {
       {
         type: 'http',
         scheme: 'bearer',
-        bearerFormat: 'JWT'
+        bearerFormat: 'JWT',
+        in: 'header'
       },
-      'JWT-auth'
+      'jwt-auth' // nombre del esquema
     )
     .build()
 
