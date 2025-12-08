@@ -169,7 +169,7 @@ export class StrapiService {
   /**
    * Método auxiliar para construir la URL completa del archivo
    */
-  private getFileUrl(path: string): string|null {
+  private getFileUrl(path: string): string | null {
     if (!path) return null
     if (path.startsWith('http')) return path
     const baseUrl = this.strapiUrl.replace('/api', '')

@@ -3,9 +3,7 @@ import { MailService } from './mail.service'
 import { MailerModule } from '@nestjs-modules/mailer'
 
 @Module({
-  imports: [
-    
-  ],
+  imports: [],
   providers: [MailService],
   exports: [MailService]
 })

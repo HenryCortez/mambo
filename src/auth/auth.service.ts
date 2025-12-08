@@ -69,7 +69,7 @@ export class AuthService {
     const qr = await this.totpService.generateQrCode(dto.email, secret)
 
     // Send welcome email with QR code
-    await this.mailService.sendWelcome(dto.email,dto.password, dto.name, qr);
+    await this.mailService.sendWelcome(dto.email, dto.password, dto.name, qr)
 
     return {
       message: 'Registered successfully. Configure your MFA.',
@@ -107,7 +107,7 @@ export class AuthService {
     }
   }
 
-  async authCode(dto: AuthCodeDto){
+  async authCode(dto: AuthCodeDto) {
     // MFA required
     const ok = this.totpService.verify(dto.totp, dto.mfaSecret)
     if (!ok) {
@@ -174,14 +174,14 @@ export class AuthService {
   }
 
   async verifyResetToken(token: string) {
-  try {
-    const decoded = await this.jwtService.verifyAsync(token);
-    if (decoded.purpose !== 'password-reset') {
-      throw new BadRequestException('Invalid token');
+    try {
+      const decoded = await this.jwtService.verifyAsync(token)
+      if (decoded.purpose !== 'password-reset') {
+        throw new BadRequestException('Invalid token')
+      }
+      return decoded
+    } catch (error) {
+      throw new BadRequestException('Invalid or expired token')
     }
-    return decoded;
-  } catch (error) {
-    throw new BadRequestException('Invalid or expired token');
   }
-}
 }
