@@ -25,7 +25,7 @@ export class StrapiService {
   async uploadPdf(
     file: Express.Multer.File,
     customFilename?: string
-  ): Promise<{ url: string; id: number }> {
+  ): Promise<{ url: string; id: number; name: string }> {
     try {
       if (!this.strapiUrl || !this.apiKey) {
         throw new InternalServerErrorException('Configuración de Strapi faltante')
@@ -37,16 +37,21 @@ export class StrapiService {
       }
 
       // Crear FormData con el archivo
+      const FormData = require('form-data')
       const formData = new FormData()
-      const blob = new Blob([file.buffer], { type: 'application/pdf' })
-
+      
       // Usar nombre personalizado o el original, asegurando extensión .pdf
       let filename = customFilename || file.originalname
       if (!filename.toLowerCase().endsWith('.pdf')) {
         filename += '.pdf'
       }
-
-      formData.append('files', blob, filename)
+      
+      // Usar el buffer directamente con el FormData
+      formData.append('files', file.buffer, {
+        filename: filename,
+        contentType: 'application/pdf',
+        knownLength: file.size
+      })
 
       // Configuración para subir a la carpeta "mambo"
       const config: AxiosRequestConfig = {
@@ -75,7 +80,8 @@ export class StrapiService {
         this.logger.log(`✅ PDF subido exitosamente: ${fileUrl}`)
         return {
           url: fileUrl,
-          id: uploadedFile.id
+          id: uploadedFile.id,
+          name: file.originalname
         }
       } else {
         throw new Error('Strapi no devolvió ningún archivo')
