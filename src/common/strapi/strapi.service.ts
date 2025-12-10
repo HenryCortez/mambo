@@ -1,5 +1,6 @@
 import { Injectable, Logger, InternalServerErrorException, NotFoundException } from '@nestjs/common'
 import axios, { AxiosRequestConfig } from 'axios'
+import { ResUploadDto } from './dto/res-upload.dto'
 
 @Injectable()
 export class StrapiService {
@@ -22,10 +23,7 @@ export class StrapiService {
    * @param customFilename - Nombre personalizado opcional (ej: "documento_123.pdf")
    * @returns URL completa del archivo subido
    */
-  async uploadPdf(
-    file: Express.Multer.File,
-    customFilename?: string
-  ): Promise<{ url: string; id: number; name: string }> {
+  async uploadPdf(file: Express.Multer.File, customFilename?: string): Promise<ResUploadDto> {
     try {
       if (!this.strapiUrl || !this.apiKey) {
         throw new InternalServerErrorException('Configuración de Strapi faltante')
@@ -39,13 +37,13 @@ export class StrapiService {
       // Crear FormData con el archivo
       const FormData = require('form-data')
       const formData = new FormData()
-      
+
       // Usar nombre personalizado o el original, asegurando extensión .pdf
       let filename = customFilename || file.originalname
       if (!filename.toLowerCase().endsWith('.pdf')) {
         filename += '.pdf'
       }
-      
+
       // Usar el buffer directamente con el FormData
       formData.append('files', file.buffer, {
         filename: filename,
@@ -82,7 +80,7 @@ export class StrapiService {
           url: fileUrl,
           id: uploadedFile.id,
           name: file.originalname
-        }
+        } as ResUploadDto
       } else {
         throw new Error('Strapi no devolvió ningún archivo')
       }

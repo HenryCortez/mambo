@@ -5,6 +5,4 @@ import { encodeArithmetic, decodeArithmetic } from './arithmetic.util'
 @Injectable()
 export class EncryptionService {
   constructor(private readonly prisma: PrismaService) {}
-
-  
 }
