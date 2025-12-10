@@ -1,12 +1,12 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty } from '@nestjs/swagger'
 
 export class ResUploadDto {
   @ApiProperty({ description: 'URL del archivo subido' })
-  url: string;
-  
+  url: string
+
   @ApiProperty({ description: 'ID del archivo en Strapi' })
-  id: number;
-  
+  id: number
+
   @ApiProperty({ description: 'Nombre original del archivo' })
-  name: string;
+  name: string
 }

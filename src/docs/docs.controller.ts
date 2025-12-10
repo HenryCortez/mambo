@@ -10,9 +10,8 @@ import {
   Logger
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiConsumes, ApiBody } from '@nestjs/swagger'
+import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger'
 import { EncryptionService } from './encryption/encryption.service'
-import { EncryptDocDto } from './encryption/dto/encrypt-doc.dto'
 import { CreateDocDto } from './dto/create-doc.dto'
 import { DocsService } from './docs.service'
 
@@ -55,7 +54,6 @@ export class DocsController {
         file
       }
       return await this.docsService.createDocument(dtoWithFile)
- 
     } catch (error) {
       Logger.error('Error processing document upload:', error)
       throw error

@@ -1,5 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
-import { IsString, IsNotEmpty, IsEnum, IsOptional } from 'class-validator'
+import { IsString, IsNotEmpty, IsEnum, IsOptional, IsNumber, IsJSON } from 'class-validator'
 
 export enum TYPES {
   OFFICE = 'OFFICE',
@@ -18,8 +18,8 @@ export class CreateDocDto {
     required: false,
     example: '123456'
   })
-  @IsString()
   @IsOptional()
+  @IsString()
   password?: string
 
   @ApiProperty({
@@ -39,6 +39,33 @@ export class CreateDocDto {
   @IsEnum(CATEGORY)
   @IsNotEmpty()
   category: CATEGORY
+
+  @ApiProperty({
+    description: 'Codigo de encriptado front',
+    required: false,
+    example: '15.5135135151'
+  })
+  @IsOptional()
+  @IsString()
+  code?: string
+
+  @ApiProperty({
+    description: 'Largo del texto del mensaje',
+    required: false,
+    example: '2000'
+  })
+  @IsOptional()
+  @IsNumber()
+  length?: number
+
+  @ApiProperty({
+    description: '',
+    required: false,
+    example: '123456'
+  })
+  @IsOptional()
+  @IsJSON()
+  frequencies?: string
 
   @ApiPropertyOptional({
     type: 'string',
