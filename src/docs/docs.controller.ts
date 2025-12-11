@@ -72,4 +72,31 @@ export class DocsController {
       throw error
     }
   }
+
+  @Get('my-documents')
+  @ApiOperation({ summary: 'Get all documents created by the user' })
+  @ApiResponse({ status: 200, description: 'Documents retrieved successfully' })
+  async getMyDocuments(@Req() req) {
+    try {
+      const decodedToken = this.jwtService.getDatosToken(req.headers.authorization)
+      return await this.docsService.getDocumentsByUser(decodedToken.sub)
+    } catch (error) {
+      Logger.error('Error getting user documents:', error)
+      throw error
+    }
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Get a document by ID' })
+  @ApiResponse({ status: 200, description: 'Document retrieved successfully' })
+  @ApiResponse({ status: 404, description: 'Document not found or access denied' })
+  async getDocumentById(@Param('id', ParseIntPipe) id: number, @Req() req) {
+    try {
+      const decodedToken = this.jwtService.getDatosToken(req.headers.authorization)
+      return await this.docsService.getDocumentById(id, decodedToken.sub)
+    } catch (error) {
+      Logger.error('Error getting document by ID:', error)
+      throw error
+    }
+  }
 }

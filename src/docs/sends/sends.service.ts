@@ -158,9 +158,6 @@ export class SendsService {
         emisor: {
           select: { id: true, email: true }
         },
-        receptor: {
-          select: { id: true, email: true }
-        },
         doc: {
           select: {
             id: true,

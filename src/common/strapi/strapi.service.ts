@@ -17,12 +17,6 @@ export class StrapiService {
     }
   }
 
-  /**
-   * Sube un archivo PDF a Strapi en la carpeta "mambo"
-   * @param file - Archivo de Multer (Express.Multer.File)
-   * @param customFilename - Nombre personalizado opcional (ej: "documento_123.pdf")
-   * @returns URL completa del archivo subido
-   */
   async uploadPdf(file: Express.Multer.File, customFilename?: string): Promise<ResUploadDto> {
     try {
       if (!this.strapiUrl || !this.apiKey) {
@@ -90,11 +84,6 @@ export class StrapiService {
     }
   }
 
-  /**
-   * Obtiene información detallada de un archivo por su ID
-   * @param fileId - ID del archivo en Strapi
-   * @returns Información detallada del archivo
-   */
   async getFile(fileId: number) {
     try {
       const response = await axios.get(`${this.strapiUrl}/upload/files/${fileId}`, {
@@ -131,20 +120,11 @@ export class StrapiService {
     }
   }
 
-  /**
-   * Obtiene la URL pública de un archivo
-   * @param fileId - ID del archivo
-   * @returns URL pública del archivo
-   */
   async getFileUrlById(fileId: number): Promise<string> {
     const file = await this.getFile(fileId)
     return file.url
   }
 
-  /**
-   * Elimina un archivo de Strapi por su ID
-   * @param fileId - ID del archivo en Strapi
-   */
   async deleteFile(fileId: number): Promise<void> {
     try {
       // Primero verificamos que el archivo exista
@@ -170,9 +150,6 @@ export class StrapiService {
     }
   }
 
-  /**
-   * Método auxiliar para construir la URL completa del archivo
-   */
   private getFileUrl(path: string): string | null {
     if (!path) return null
     if (path.startsWith('http')) return path

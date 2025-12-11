@@ -79,4 +79,77 @@ export class DocsService {
 
     return doc_response
   }
+
+  async getDocumentsByUser(userId: number) {
+    const documents = await this.prisma.docs.findMany({
+      where: {
+        creations: {
+          some: {
+            id_user: userId
+          }
+        }
+      },
+      include: {
+        creations: {
+          select: {
+            status: true,
+            details: true
+          }
+        },
+        encryptions: {
+          select: {
+            code_front: true,
+            length_front: true,
+            frequencies_front: true
+          }
+        }
+      },
+      orderBy: {
+        id: 'desc'
+      }
+    })
+
+    return documents
+  }
+
+  async getDocumentById(documentId: number, userId: number) {
+    const document = await this.prisma.docs.findFirst({
+      where: {
+        id: documentId,
+        creations: {
+          some: {
+            id_user: userId
+          }
+        }
+      },
+      include: {
+        creations: {
+          select: {
+            status: true,
+            details: true
+          }
+        },
+        encryptions: {
+          select: {
+            code_front: true,
+            length_front: true,
+            frequencies_front: true
+          }
+        },
+        sends: {
+          include: {
+            receptor: {
+              select: { id: true, email: true, name: true }
+            }
+          }
+        }
+      }
+    })
+
+    if (!document) {
+      throw new Error('Documento no encontrado o no tienes acceso a él')
+    }
+
+    return document
+  }
 }
