@@ -66,6 +66,14 @@ export class CreateDocDto {
   @IsJSON()
   frequencies?: string
 
+  @ApiProperty({
+    description: 'titulo del archivo',
+    required: true,
+    example: 'doc1'
+  })
+  @IsString()
+  title: string
+
   @ApiPropertyOptional({
     type: 'string',
     format: 'binary',

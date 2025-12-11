@@ -29,7 +29,7 @@ export class DocsService {
       data: {
         category: dto_res.category,
         type: dto_res.type,
-        name: file.originalname
+        name: dto.title
       }
     })
 
