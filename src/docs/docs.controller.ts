@@ -2,6 +2,7 @@ import {
   Controller,
   Post,
   Get,
+  Put,
   Body,
   Param,
   ParseIntPipe,
@@ -82,6 +83,33 @@ export class DocsController {
       return await this.docsService.getDocumentsByUser(decodedToken.sub)
     } catch (error) {
       Logger.error('Error getting user documents:', error)
+      throw error
+    }
+  }
+
+  @Put(':id')
+  @UseInterceptors(FileInterceptor('file'))
+  @ApiOperation({ summary: 'Update a document' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({ type: CreateDocDto })
+  @ApiResponse({ status: 200, description: 'Document updated successfully' })
+  @ApiResponse({ status: 403, description: 'Only DRAFT documents can be edited' })
+  @ApiResponse({ status: 404, description: 'Document not found or access denied' })
+  async updateDocument(
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() updateDocDto: CreateDocDto,
+    @Req() req
+  ) {
+    try {
+      const decodedToken = this.jwtService.getDatosToken(req.headers.authorization)
+      const dtoWithFile = {
+        ...updateDocDto,
+        file
+      }
+      return await this.docsService.updateDocument(id, dtoWithFile, decodedToken)
+    } catch (error) {
+      Logger.error('Error updating document:', error)
       throw error
     }
   }
