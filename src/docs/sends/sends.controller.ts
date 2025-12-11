@@ -51,15 +51,15 @@ export class SendsController {
     }
   }
 
-  @Get('my-sends')
+  @Get('my-received')
   @ApiOperation({ summary: 'Get all sends for the current user (both sent and received)' })
   @ApiResponse({ status: 200, description: 'Sends retrieved successfully' })
-  async getMySends(@Req() req) {
+  async getMyReceived(@Req() req) {
     try {
       // Extract JWT token from Authorization header
       const decodedToken = this.jwtService.getDatosToken(req.headers.authorization)
 
-      return await this.sendsService.getSendsByUser(decodedToken?.sub)
+      return await this.sendsService.getReceivedByUser(decodedToken?.sub)
     } catch (error) {
       Logger.error('Error getting sends:', error)
       throw error

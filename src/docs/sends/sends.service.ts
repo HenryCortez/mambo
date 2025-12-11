@@ -144,20 +144,20 @@ export class SendsService {
     }
   }
 
-  async getSendsByUser(userId: number) {
+  async getReceivedByUser(userId: number) {
     const sends = await this.prisma.sends.findMany({
       where: {
-        OR: [{ id_emisor: userId }, { id_receptor: userId }]
+        id_receptor: userId
       },
       include: {
         emisor: {
-          select: { id: true, email: true, name: true }
+          select: { id: true, email: true }
         },
         receptor: {
-          select: { id: true, email: true, name: true }
+          select: { id: true, email: true }
         },
         doc: {
-          select: { id: true, name: true, category: true, type: true }
+          select: { id: true, name: true, category: true, type: true, url: true }
         }
       },
       orderBy: {
