@@ -19,6 +19,25 @@ export class PdfService {
       // Agregar el código de encriptado como texto visible en la parte superior
       const { width, height } = firstPage.getSize()
 
+      // Cubrir el área donde está el "daaa" con un rectángulo blanco
+      // Coordenadas aproximadas para cubrir el texto en la parte inferior izquierda
+      firstPage.drawRectangle({
+        x: 45,
+        y: 45,
+        width: 100,
+        height: 20,
+        color: rgb(1, 1, 1) // Blanco para cubrir el texto existente
+      })
+
+      // Escribir el código en la misma posición donde estaba "daaa"
+      firstPage.drawText(code, {
+        x: 50,
+        y: 50,
+        size: 12,
+        color: rgb(0, 0, 0)
+      })
+
+      // También mantener el código en la parte superior como antes
       firstPage.drawText(`CÓDIGO: ${code}`, {
         x: 50,
         y: height - 50,
