@@ -11,13 +11,13 @@ export class EncryptionService {
     const res = encodeArithmetic(dto.code)
     return await this.prisma.encryptions.create({
       data: {
-        id_doc: dto.id_doc, // Add the required doc ID
+        id_doc: dto.id_doc,
         code_front: dto.code,
         code_back: res.code,
-        length_front: dto.length as number,
-        length_back: res.length,
+        length_front: Number(dto.length),
+        length_back: Number(res.length),
         frequencies_front: dto.frequencies,
-        frequencies_back: res.frequencies
+        frequencies_back: JSON.stringify(res.frequencies)
       }
     })
   }
