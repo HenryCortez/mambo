@@ -7,20 +7,32 @@ import {
   ParseIntPipe,
   UseInterceptors,
   UploadedFile,
-  Logger
+  Logger,
+  UseGuards,
+  Req
 } from '@nestjs/common'
 import { FileInterceptor } from '@nestjs/platform-express'
-import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody } from '@nestjs/swagger'
-import { EncryptionService } from './encryption/encryption.service'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiConsumes,
+  ApiBody,
+  ApiBearerAuth
+} from '@nestjs/swagger'
 import { CreateDocDto } from './dto/create-doc.dto'
 import { DocsService } from './docs.service'
+import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard'
+import { CommonService } from 'src/common/common.service'
 
 @ApiTags('docs')
 @Controller('docs')
+@ApiBearerAuth('jwt-auth')
+@UseGuards(JwtAuthGuard)
 export class DocsController {
   constructor(
-    private readonly encryptionService: EncryptionService,
-    private readonly docsService: DocsService
+    private readonly docsService: DocsService,
+    private readonly jwtService: CommonService
   ) {}
 
   // @Post('encrypt')
@@ -45,15 +57,16 @@ export class DocsController {
   @ApiResponse({ status: 201, description: 'Document uploaded successfully' })
   async uploadDocument(
     @UploadedFile() file: Express.Multer.File,
-    @Body() createDocDto: CreateDocDto
+    @Body() createDocDto: CreateDocDto,
+    @Req() req
   ) {
     try {
-      // Combine the file with the DTO
+      const decodedToken = this.jwtService.getDatosToken(req.headers.authorization)
       const dtoWithFile = {
         ...createDocDto,
         file
       }
-      return await this.docsService.createDocument(dtoWithFile)
+      return await this.docsService.createDocument(dtoWithFile, decodedToken)
     } catch (error) {
       Logger.error('Error processing document upload:', error)
       throw error

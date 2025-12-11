@@ -55,7 +55,6 @@ export class CreateDocDto {
     example: '2000'
   })
   @IsOptional()
-  @IsNumber()
   length?: number
 
   @ApiProperty({
