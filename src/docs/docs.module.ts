@@ -5,11 +5,12 @@ import { DocsController } from './docs.controller'
 import { EncryptionService } from './encryption/encryption.service'
 import { DocsService } from './docs.service'
 import { CreationsService } from './creations/creations.service'
+import { PdfService } from './pdf/pdf.service'
 
 @Module({
   imports: [EncryptionModule, SendsModule],
   controllers: [DocsController],
-  providers: [EncryptionService, DocsService, CreationsService],
+  providers: [EncryptionService, DocsService, CreationsService, PdfService],
   exports: [EncryptionModule, SendsModule]
 })
 export class DocsModule {}

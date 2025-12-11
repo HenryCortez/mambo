@@ -6,6 +6,7 @@ import { EncryptionService } from './encryption/encryption.service'
 import { CreateEncryptionDto } from './encryption/dto/create-encryption.dto'
 import { DecodedToken } from 'src/common/common.service'
 import { CreationsService } from './creations/creations.service'
+import { PdfService } from './pdf/pdf.service'
 
 @Injectable()
 export class DocsService {
@@ -13,13 +14,16 @@ export class DocsService {
     private readonly prisma: PrismaService,
     private readonly strapi: StrapiService,
     private readonly encryption: EncryptionService,
-    private readonly creation: CreationsService
+    private readonly creation: CreationsService,
+    private readonly pdfService: PdfService
   ) {}
 
   async createDocument(dto: CreateDocDto, decodeToken: DecodedToken) {
     const { file, ...dto_res } = dto
     if (file === null || file === undefined) throw new Error('No se proporciono un archivo')
     if (file.mimetype !== 'application/pdf') throw new Error('Solo se permiten archivos PDF')
+
+    let fileToUpload: Express.Multer.File = file
 
     const doc_temp = await this.prisma.docs.create({
       data: {
@@ -45,6 +49,10 @@ export class DocsService {
           dto_res.frequencies === undefined
         )
           throw new Error('No se proporcionaron los datos del encriptado')
+
+        // Modificar el PDF para agregar el código de encriptado
+        fileToUpload = await this.pdfService.addCodeToPdf(file, dto_res.code)
+
         const data_encrypted: CreateEncryptionDto = {
           id_doc: doc_temp.id,
           code: dto_res.code,
@@ -59,7 +67,7 @@ export class DocsService {
         break
     }
 
-    const doc_upload = await this.strapi.uploadPdf(file)
+    const doc_upload = await this.strapi.uploadPdf(fileToUpload)
     doc_temp.url = doc_upload.url
     doc_temp.id_strapi = doc_upload.id
     const doc_response = await this.prisma.docs.update({
