@@ -112,6 +112,116 @@ export class DocsService {
     return documents
   }
 
+  async updateDocument(documentId: number, dto: CreateDocDto, decodeToken: DecodedToken) {
+    const { file, ...dto_res } = dto
+
+    // Verificar que el documento exista y pertenezca al usuario
+    const existingDoc = await this.prisma.docs.findFirst({
+      where: {
+        id: documentId,
+        creations: {
+          some: {
+            id_user: decodeToken.sub,
+            status: 'DRAFT'
+          }
+        }
+      },
+      include: {
+        encryptions: true
+      }
+    })
+
+    if (!existingDoc) {
+      throw new Error(
+        'Documento no encontrado o no tienes acceso para editarlo (solo se pueden editar documentos con status DRAFT)'
+      )
+    }
+
+    if (file === null || file === undefined) throw new Error('No se proporciono un archivo')
+    if (file.mimetype !== 'application/pdf') throw new Error('Solo se permiten archivos PDF')
+
+    let fileToUpload: Express.Multer.File = file
+
+    // Actualizar datos básicos del documento
+    const updatedDoc = await this.prisma.docs.update({
+      where: { id: documentId },
+      data: {
+        category: dto_res.category,
+        type: dto_res.type,
+        name: file.originalname
+      }
+    })
+
+    // Manejar categorías similar a createDocument
+    switch (updatedDoc.category) {
+      case CATEGORY.NORMAL:
+        if (dto_res.password === null || dto_res.password === undefined)
+          throw new Error('Un documento categoria normal, nesesita contraseña')
+
+        await this.prisma.docs.update({
+          where: { id: documentId },
+          data: { password: dto_res.password }
+        })
+        break
+
+      case CATEGORY.ENCRYPTED:
+        if (
+          dto_res.code === null ||
+          dto_res.code === undefined ||
+          dto_res.length === 0 ||
+          dto_res.length === undefined ||
+          dto_res.frequencies === null ||
+          dto_res.frequencies === undefined
+        )
+          throw new Error('No se proporcionaron los datos del encriptado')
+
+        // Modificar el PDF para agregar el código de encriptado
+        fileToUpload = await this.pdfService.addCodeToPdf(file, dto_res.code)
+
+        // Actualizar o crear encriptación
+        if (existingDoc.encryptions) {
+          // Eliminar encriptación anterior y crear nueva
+          await this.prisma.encryptions.deleteMany({
+            where: { id_doc: documentId }
+          })
+
+          const data_encrypted: CreateEncryptionDto = {
+            id_doc: documentId,
+            code: dto_res.code,
+            length: dto_res.length,
+            frequencies: dto_res.frequencies
+          }
+          await this.encryption.createEncryption(data_encrypted)
+        } else {
+          const data_encrypted: CreateEncryptionDto = {
+            id_doc: documentId,
+            code: dto_res.code,
+            length: dto_res.length,
+            frequencies: dto_res.frequencies
+          }
+          await this.encryption.createEncryption(data_encrypted)
+        }
+        break
+
+      default:
+        break
+    }
+
+    // Subir nuevo archivo a Strapi
+    const doc_upload = await this.strapi.uploadPdf(fileToUpload)
+
+    // Actualizar URL y id_strapi del documento
+    const finalDoc = await this.prisma.docs.update({
+      where: { id: documentId },
+      data: {
+        url: doc_upload.url,
+        id_strapi: doc_upload.id
+      }
+    })
+
+    return finalDoc
+  }
+
   async getDocumentById(documentId: number, userId: number) {
     const document = await this.prisma.docs.findFirst({
       where: {
