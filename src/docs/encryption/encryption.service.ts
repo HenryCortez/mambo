@@ -14,7 +14,7 @@ export class EncryptionService {
         id_doc: dto.id_doc, // Add the required doc ID
         code_front: dto.code,
         code_back: res.code,
-        length_front: dto.length,
+        length_front: dto.length as number,
         length_back: res.length,
         frequencies_front: dto.frequencies,
         frequencies_back: res.frequencies
