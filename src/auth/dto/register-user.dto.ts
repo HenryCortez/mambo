@@ -1,5 +1,5 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator';
-import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsEmail, IsNotEmpty, IsString, MinLength, Matches, IsOptional } from 'class-validator'
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger'
 
 export class RegisterUserDto {
   @ApiProperty({
@@ -45,5 +45,5 @@ export class RegisterUserDto {
     example: 1
   })
   @IsOptional()
-  parent_id?: number;
+  parent_id?: number
 }

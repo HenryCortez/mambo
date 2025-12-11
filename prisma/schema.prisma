@@ -15,6 +15,7 @@ datasource db {
 enum TYPES {
   OFFICE
   MEMORANDUM
+  NONE
 }
 
 enum CATEGORY {
@@ -58,6 +59,7 @@ model docs {
   password String?
   type     TYPES?
   category CATEGORY?
+  id_strapi Int?
 
   // relations
   creations   creations[]

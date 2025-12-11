@@ -1,6 +1,22 @@
 // src/users/users.controller.ts
-import { Controller, Get, Param, ParseIntPipe, Body, Put, HttpStatus, UseGuards } from '@nestjs/common'
-import { ApiTags, ApiOperation, ApiResponse, ApiParam, ApiBody, ApiBearerAuth } from '@nestjs/swagger'
+import {
+  Controller,
+  Get,
+  Param,
+  ParseIntPipe,
+  Body,
+  Put,
+  HttpStatus,
+  UseGuards
+} from '@nestjs/common'
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiParam,
+  ApiBody,
+  ApiBearerAuth
+} from '@nestjs/swagger'
 import { UsersService } from './users.service'
 import { UserResponseDto } from './dto/user-res.dto'
 import { UpdateUserDto } from './dto/update-user.dto'
