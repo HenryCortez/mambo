@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "TYPES" ADD VALUE 'NONE';

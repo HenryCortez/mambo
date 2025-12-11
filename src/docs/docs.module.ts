@@ -1,14 +1,16 @@
 import { Module } from '@nestjs/common'
 import { EncryptionModule } from './encryption/encryption.module'
+import { SendsModule } from './sends/sends.module'
 import { DocsController } from './docs.controller'
 import { EncryptionService } from './encryption/encryption.service'
-import { CommonModule } from '../common/common.module'
-import { DocsService } from './docs.service';
+import { DocsService } from './docs.service'
+import { CreationsService } from './creations/creations.service'
+import { PdfService } from './pdf/pdf.service'
 
 @Module({
-  imports: [EncryptionModule, CommonModule],
+  imports: [EncryptionModule, SendsModule],
   controllers: [DocsController],
-  providers: [EncryptionService, DocsService],
-  exports: [EncryptionModule]
+  providers: [EncryptionService, DocsService, CreationsService, PdfService],
+  exports: [EncryptionModule, SendsModule]
 })
 export class DocsModule {}
