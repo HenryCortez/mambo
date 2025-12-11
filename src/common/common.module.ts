@@ -3,7 +3,7 @@ import { JwtModule } from '@nestjs/jwt'
 import { PrismaService } from './prisma/prisma.service'
 import { TotpService } from './totp/totp.service'
 import { StrapiModule } from './strapi/strapi.module'
-import { CommonService } from './common.service';
+import { CommonService } from './common.service'
 
 @Global()
 @Module({

@@ -51,7 +51,7 @@ export class DocsService {
           length: dto_res.length,
           frequencies: dto_res.frequencies
         }
-        
+
         await this.encryption.createEncryption(data_encrypted)
 
         break
@@ -62,17 +62,13 @@ export class DocsService {
     const doc_upload = await this.strapi.uploadPdf(file)
     doc_temp.url = doc_upload.url
     doc_temp.id_strapi = doc_upload.id
-    await this.prisma.docs.update({
+    const doc_response = await this.prisma.docs.update({
       where: { id: doc_temp.id },
       data: doc_temp
     })
 
     await this.creation.createCreation(decodeToken.sub, doc_temp.id)
 
-    return {
-      fileName: file.originalname,
-      fileSize: file.size,
-      dtores: dto_res
-    }
+    return doc_response
   }
 }
