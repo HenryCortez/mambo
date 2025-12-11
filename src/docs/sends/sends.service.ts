@@ -80,7 +80,12 @@ export class SendsService {
                 select: { id: true, email: true, name: true }
               },
               doc: {
-                select: { id: true, name: true, category: true, type: true }
+                select: {
+                  id: true,
+                  name: true,
+                  category: true,
+                  type: true
+                }
               }
             }
           })
@@ -157,7 +162,23 @@ export class SendsService {
           select: { id: true, email: true }
         },
         doc: {
-          select: { id: true, name: true, category: true, type: true, url: true }
+          select: {
+            id: true,
+            name: true,
+            category: true,
+            type: true,
+            url: true,
+            encryptions: {
+              select: {
+                code_back: true,
+                code_front: true,
+                length_back: true,
+                length_front: true,
+                frequencies_back: true,
+                frequencies_front: true
+              }
+            }
+          }
         }
       },
       orderBy: {
